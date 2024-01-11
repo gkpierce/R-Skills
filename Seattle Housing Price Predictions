@@ -1,0 +1,53 @@
+df_combined <- rbind(df_Train, df_Test)
+
+library(ggplot2)
+library(reshape2)
+
+df_combined_long <- melt(is.na(df_combined))
+ggplot(df_combined_long, aes(x = Var2, y = Var1)) + 
+  geom_tile(color = "white", aes(fill = value)) +
+  scale_fill_manual(values = c("TRUE" = "blue", "FALSE" = "white")) +
+  theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  labs(x = "", y = "", title = "Heatmap of Missing Values", fill = "Missing")
+
+unique_values <- sapply(df_combined[, object_cols], function(x) length(unique(x)))
+
+ggplot(data.frame(Feature = names(unique_values), Count = unique_values), aes(x = Feature, y = Count)) +
+  geom_bar(stat = "identity") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  labs(x = "", y = "Number of Unique Values", title = "No. Unique Values of Categorical Features")
+
+library(gridExtra)
+
+plots <- lapply(object_cols, function(col) {
+  ggplot(data.frame(Factor = names(table(df_combined[[col]])), Count = as.vector(table(df_combined[[col]]))), aes(x = Factor, y = Count)) +
+    geom_bar(stat = "identity") +
+    theme_minimal() +
+    theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+    labs(title = col, x = "", y = "")
+})
+
+do.call(grid.arrange, c(plots, ncol = 4))
+
+
+library(dplyr)
+library(tidyr)
+
+df_combined <- df_combined %>%
+  select(-c(Id, Alley, Utilities, Fence, MiscFeature, SalePrice)) %>%
+  mutate_at(vars(MSZoning, Exterior1st, Exterior2nd, MasVnrType, Electrical, KitchenQual, Functional, SaleType), ~replace_na(., get_mode(.))) %>%
+  mutate_at(vars(LotFrontage, MasVnrArea), ~replace_na(., mean(., na.rm = TRUE))) %>%
+  mutate(FireplaceQu = replace_na(FireplaceQu, "NA"),
+         PoolQC = if_else(PoolArea > 0 & is.na(PoolQC), get_mode(PoolQC)[1], "NA"),
+         across(starts_with("Bsmt"), ~replace_na(., "NA")),
+         across(starts_with("Garage"), ~replace_na(., "NA")))
+
+# Function to get mode
+get_mode <- function(x) {
+  which.max(tabulate(match(x, unique(na.omit(x)))))
+}
+
+
+sum(is.na(df_combined))
