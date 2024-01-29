@@ -1,0 +1,33 @@
+data(package = "Lahman")
+pitchingLabels
+Appearances
+glimpse(PitchingPost)
+########################################
+### Scrape Fangraphs for Injury Data ###
+########################################
+
+# Fangraphs 2021 MLB Injury Data
+url <- "https://www.fangraphs.com/roster-resource/injury-report?groupby=injury&season=2021&timeframe=all"
+
+# Read-in
+webpage <- read_html(url)
+
+##### chatgpt attempt #####
+css_selector <- "#wrapper #content #root-roster-resource .injury-report h2 + *"
+
+### https://towardsdatascience.com/web-scraping-in-r-using-rvest-and-selectorgadget-5fc5124547e
+tj_html = html_nodes(webpage, 'tr th')
+head(tj_html)
+
+
+# Use html_nodes with the CSS selector and html_table to extract the table data
+data_tables <- webpage %>% 
+  html_nodes(css_selector) %>% 
+  html_table(fill = TRUE)
+
+# Assuming the first table after the h2 is the one we need
+tj_surgery_data <- data_tables[[1]]
+
+# View the first few rows of the table
+head(tj_surgery_data)
+print(length(data_tables))
