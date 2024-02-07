@@ -10,6 +10,7 @@ glimpse(PitchingPost)
 ### LOOK AT BASEBALL REFERENCE ###
 # Fangraphs 2021 MLB Injury Data
 url <- "https://www.fangraphs.com/roster-resource/injury-report?groupby=injury&season=2021&timeframe=all"
+url2 <- https://www.spotrac.com/mlb/injured-list/2022/cumulative-player/pitching/
 
 # Read-in
 webpage <- read_html(url)
